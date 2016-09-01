@@ -26,3 +26,16 @@
 *.exe
 *.out
 *.app
+
+*.pdb
+*.user
+*.rsp
+
+*/Release/*
+.vs/*
+*.db
+*.tlog
+*.log
+MonoTest/x64/*
+ipch/*
+MonoGlue/bin/*

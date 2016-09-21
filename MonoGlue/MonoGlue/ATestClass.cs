@@ -9,7 +9,7 @@ namespace MonoGlue
     {
         public ATestClass()
         {
-            System.Console.Write("ATestClass was created");
+            System.Console.Write("C#: ATestClass was created\n");
         }
 
         public int multiply(int a, int b)

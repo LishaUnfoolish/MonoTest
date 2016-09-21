@@ -39,3 +39,7 @@
 MonoTest/x64/*
 ipch/*
 MonoGlue/bin/*
+
+build*
+*.userprefs
+MonoGlue/MonoGlue/obj/*

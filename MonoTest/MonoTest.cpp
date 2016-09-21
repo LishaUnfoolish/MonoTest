@@ -139,5 +139,16 @@ int main(int argc, char *argv[])
     int int_result = *(int*)mono_object_unbox(result);
     std::cout << "Multiply called. Result is: " << int_result << std::endl;
 
+
+    // Execute a C function using DllImport
+    // No registration required - this requires _declspec(dllexport) on Windows
+
+
+    // Execute a C function using MethodImplAttribute
+    // Register function
+
+
+    // Execute a function pointer returned from C#
+
     return 0;
 }

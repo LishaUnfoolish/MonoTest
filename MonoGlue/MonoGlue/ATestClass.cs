@@ -16,5 +16,8 @@ namespace MonoGlue
         {
             return a * b;
         }
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		extern public string methodImplTest();
     }
 }

@@ -14,7 +14,11 @@ unix {
 # Library paths
 unix {
     LIBS += -L"/usr/lib/"
+    QMAKE_LFLAGS += -Wl,--export-dynamic -Xlinker -Map=output.map
 }
 
 # Libraries
 LIBS += -lmono-2.0
+
+HEADERS += \
+    MonoTest.h

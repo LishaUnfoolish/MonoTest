@@ -1,46 +1,4 @@
-#include <iostream>
-
-#include <mono/jit/jit.h>
-#include <mono/metadata/assembly.h>
-
-const char* getStringProperty(const char* propertyName, MonoClass* classType, MonoObject* classObject)
-{
-    MonoProperty *messageProperty;
-    MonoMethod *messageGetter;
-    MonoString *messageString;
-
-    messageProperty = mono_class_get_property_from_name(classType, propertyName);
-    messageGetter = mono_property_get_get_method(messageProperty);
-    messageString = (MonoString *)mono_runtime_invoke(messageGetter, classObject, NULL, NULL);
-    return mono_string_to_utf8(messageString);
-}
-
-std::string monoExceptionToString(MonoObject* exception)
-{
-    if (exception)
-    {
-        MonoClass *exceptionClass;
-        MonoType *exceptionType;
-        const char *typeName, *message, *source, *stackTrace;
-
-        exceptionClass = mono_object_get_class(exception);
-        exceptionType = mono_class_get_type(exceptionClass);
-        typeName = mono_type_get_name(exceptionType);
-        message = getStringProperty("Message", exceptionClass, exception);
-        source = getStringProperty("Source", exceptionClass, exception);
-        stackTrace = getStringProperty("StackTrace", exceptionClass, exception);
-
-        std::string error = "Message: ";
-        error.append(message);
-        error.append("\nSource: ");
-        error.append(source);
-        error.append("\nStackTrace: ");
-        error.append(stackTrace);
-        return error;
-    }
-
-    return "Null exception object passed";
-}
+#include "MonoTest.h"
 
 int main(int argc, char *argv[])
 {
@@ -78,7 +36,6 @@ int main(int argc, char *argv[])
     }
     std::cout << "Created ATestClass" << std::endl;
 
-
     // Get the constructor method
     MonoMethod* constructorMethod = mono_class_get_method_from_name(entityClass,
                                                                     ".ctor",
@@ -89,7 +46,6 @@ int main(int argc, char *argv[])
         return -3;
     }
     std::cout << "Got constructor" << std::endl;
-
     // Allocate space for the object
     MonoObject* entityInstance = mono_object_new(domain, entityClass);
     if (!entityInstance)
@@ -98,7 +54,6 @@ int main(int argc, char *argv[])
         return -3;
     }
     std::cout << "Allocated instance space" << std::endl;
-
     // Invoke constructor
     MonoObject* exception = NULL;
     MonoObject* resultObject = mono_runtime_invoke(constructorMethod, entityInstance, NULL, &exception);
@@ -108,7 +63,6 @@ int main(int argc, char *argv[])
         return -3;
     }
     std::cout << "Constructor called" << std::endl;
-
 
     // Get method
     MonoMethod* multiplyMethod = mono_class_get_method_from_name(   entityClass,
@@ -120,33 +74,51 @@ int main(int argc, char *argv[])
         return -3;
     }
     std::cout << "Got multiply method" << std::endl;
-
     // Create two numbers as arguments
     void* args[2];
     int arg1 = 5;
     int arg2 = 7;
     args[0] = &arg1;
     args[1] = &arg2;
-
     // Execute method
     exception = NULL;
-    MonoObject* result = mono_runtime_invoke(multiplyMethod, entityInstance, args, &exception);
+    resultObject = mono_runtime_invoke(multiplyMethod, entityInstance, args, &exception);
     if (exception)
     {
         std::cout << "multiply call exception:\n" << monoExceptionToString(exception) << std::endl;
         return -3;
     }
-    int int_result = *(int*)mono_object_unbox(result);
+    int int_result = *(int*)mono_object_unbox(resultObject);
     std::cout << "Multiply called. Result is: " << int_result << std::endl;
 
 
-    // Execute a C function using DllImport
-    // No registration required - this requires _declspec(dllexport) on Windows
-
-
     // Execute a C function using MethodImplAttribute
+    // Register methods BEFORE functions needing them are called.
+    methodImplTest();
+    mono_add_internal_call ("MonoGlue.ATestClass::methodImplTest", (const void*)methodImplTest);
     // Register function
-
+    // Execute a C function using DllImport
+    // No registration required - this requires _declspec(dllexport) on Windows and does NOT allow static C functions
+    std::cout << dllImportTest() << std::endl;
+    // Get test method
+    MonoMethod* testMethod = mono_class_get_method_from_name(   entityClass,
+                                                                "testCFunctions",
+                                                                0);
+    if (!testMethod)
+    {
+        std::cout << "Couldn't get test method" << std::endl;
+        return -3;
+    }
+    std::cout << "Got test method" << std::endl;
+    // Execute it
+    exception = NULL;
+    resultObject = mono_runtime_invoke(testMethod, entityInstance, NULL, &exception);
+    if (exception)
+    {
+        std::cout << mono_string_to_utf8(mono_object_to_string(exception,NULL)) << std::endl;
+        return -3;
+    }
+    std::cout << "test method called." << std::endl;
 
     // Execute a function pointer returned from C#
 

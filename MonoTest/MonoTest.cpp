@@ -2,6 +2,7 @@
 
 int main(int argc, char *argv[])
 {
+    argc;argv;
     // Init domain
     MonoDomain* domain;
     domain = mono_jit_init("MonoTest Main Domain");
@@ -120,7 +121,29 @@ int main(int argc, char *argv[])
     }
     std::cout << "test method called." << std::endl;
 
-    // Execute a function pointer returned from C#
+    // Execute a function pointer returned from C# and vice versa
+    mono_add_internal_call ("MonoGlue.ATestClass::setCallback", (const void*)setCallback);
+    // Get test method
+    MonoMethod* callbacksMethod = mono_class_get_method_from_name(  entityClass,
+                                                                    "testCallbacks",
+                                                                    1);
+    if (!callbacksMethod)
+    {
+        std::cout << "Couldn't get callbacks method" << std::endl;
+        return -3;
+    }
+    std::cout << "Got callbacks method" << std::endl;
+    // Get C++-function as an argument
+    // TODO: here
+    // Execute it
+    exception = NULL;
+    resultObject = mono_runtime_invoke(callbacksMethod, entityInstance, NULL, &exception);
+    if (exception)
+    {
+        std::cout << mono_string_to_utf8(mono_object_to_string(exception,NULL)) << std::endl;
+        return -3;
+    }
+    std::cout << "Callbacks method called." << std::endl;
 
     return 0;
 }

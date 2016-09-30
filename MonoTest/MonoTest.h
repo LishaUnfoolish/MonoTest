@@ -4,6 +4,27 @@
 
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
+#include <mono/metadata/appdomain.h>
+#include <mono/metadata/attrdefs.h>
+#include <mono/metadata/blob.h>
+#include <mono/metadata/class.h>
+#include <mono/metadata/debug-helpers.h>
+#include <mono/metadata/environment.h>
+#include <mono/metadata/exception.h>
+#include <mono/metadata/image.h>
+#include <mono/metadata/loader.h>
+#include <mono/metadata/metadata.h>
+#include <mono/metadata/mono-config.h>
+#include <mono/metadata/mono-debug.h>
+#include <mono/metadata/mono-gc.h>
+#include <mono/metadata/object.h>
+#include <mono/metadata/opcodes.h>
+#include <mono/metadata/profiler.h>
+#include <mono/metadata/reflection.h>
+#include <mono/metadata/row-indexes.h>
+#include <mono/metadata/sgen-bridge.h>
+#include <mono/metadata/threads.h>
+#include <mono/metadata/tokentype.h>
 
 #ifdef _WIN32_
 #    define EXPORT __declspec(dllexport)
@@ -63,12 +84,22 @@ extern "C"
     {
         return 66;
     }
+}
 
-    // Example for calling a C function via MethodImpl
-    static MonoString* methodImplTest()
-    {
-      return mono_string_new(mono_domain_get (), "methodImplTest from C++\n");
-    }
+// Example for calling a C function via MethodImpl
+// Note: CAN be static, but doesn't have to be
+//       Also does not have to be "extern "C""
+static MonoString* methodImplTest()
+{
+  return mono_string_new(mono_domain_get (), "methodImplTest from C++\n");
+}
+
+// Callback from C# can be received already in the "correct format" as a function pointer
+typedef void (*CallbackFunction)(MonoString*);
+void setCallback(CallbackFunction delegate)
+{
+    std::cout << &delegate << std::endl;
+    delegate(mono_string_new(mono_domain_get(), "Test string set in C++"));
 }
 
 #endif // MONOTEST_H
